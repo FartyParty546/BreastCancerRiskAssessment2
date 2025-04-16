@@ -1,6 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AssessmentFormData, AssessmentResults, FAMILY_MEMBERS, MATERNAL_RELATIVES, PATERNAL_RELATIVES } from "./types";
+import { 
+  AssessmentFormData, 
+  AssessmentResults, 
+  FAMILY_MEMBERS, 
+  MATERNAL_RELATIVES, 
+  PATERNAL_RELATIVES,
+  GENETIC_ABNORMALITY_OPTIONS,
+  FEMALE_MEMBERS_OVARIAN,
+  MALE_MEMBERS_BREAST
+} from "./types";
 import { ArrowLeft, DownloadIcon, RefreshCw, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,42 +48,156 @@ export default function Results({
     return relative ? relative.label : value;
   };
   
+  // Helper function to get abnormality label
+  const getAbnormalityLabel = (value: string) => {
+    const abnormality = GENETIC_ABNORMALITY_OPTIONS.find(a => a.value === value);
+    return abnormality ? abnormality.label : value;
+  };
+  
+  // Helper function to get female member label for ovarian cancer
+  const getFemaleOvarianLabel = (value: string) => {
+    const female = FEMALE_MEMBERS_OVARIAN.find(f => f.value === value);
+    return female ? female.label : value;
+  };
+  
+  // Helper function to get male member label for breast cancer
+  const getMaleBreastLabel = (value: string) => {
+    const male = MALE_MEMBERS_BREAST.find(m => m.value === value);
+    return male ? male.label : value;
+  };
+  
+  // Translate risk level to Dutch
+  const translateRiskLevel = (riskLevel: string): string => {
+    switch(riskLevel) {
+      case 'High': return 'Hoog';
+      case 'Moderate': return 'Gemiddeld';
+      case 'Slightly Elevated': return 'Licht Verhoogd';
+      case 'Average': return 'Gemiddeld';
+      case 'Follow-up Care Needed': return 'Vervolgzorg Nodig';
+      default: return riskLevel;
+    }
+  };
+  
   return (
     <Card className="bg-white rounded-lg shadow-md">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-6 text-slate-800">Risk Assessment Results</h2>
+        <h2 className="text-xl font-semibold mb-6 text-slate-800">Risicobeoordeling Resultaten</h2>
         
         <div className="space-y-6">
           {/* Risk Level */}
           <div className="p-4 rounded-lg border border-slate-200">
-            <h3 className="text-lg font-medium mb-2">Your Risk Level:</h3>
-            <p className={cn("text-base", results.riskColor)}>{results.riskLevel}</p>
+            <h3 className="text-lg font-medium mb-2">Uw Risiconiveau:</h3>
+            <p className={cn("text-base", results.riskColor)}>{translateRiskLevel(results.riskLevel)}</p>
           </div>
 
           {/* Explanation */}
           <div className="p-4 rounded-lg border border-slate-200">
-            <h3 className="text-lg font-medium mb-2">Explanation:</h3>
+            <h3 className="text-lg font-medium mb-2">Toelichting:</h3>
             <p className="text-base">{results.explanation}</p>
             
             {/* Family Breakdown */}
             <div className="mt-4">
-              <h4 className="text-sm font-medium">Family History Breakdown:</h4>
+              <h4 className="text-sm font-medium">Uitsplitsing Familiegeschiedenis:</h4>
               <ul className="list-disc list-inside text-sm mt-2">
                 {patientData.personalInfo.hasBreastCancer && (
                   <li>
-                    You have been diagnosed with breast cancer at age {patientData.personalInfo.diagnosisAge}.
+                    U bent gediagnosticeerd met borstkanker op leeftijd {patientData.personalInfo.diagnosisAge}.
                   </li>
                 )}
                 
-                {patientData.familyHistory.immediate.map((member, index) => (
-                  <li key={`immediate-${index}`}>
-                    {getFamilyMemberLabel(member.relation)}: Diagnosed at age {member.diagnosisAge}
+                {/* Personal genetic testing */}
+                {patientData.personalInfo.hadGeneticTest && (
+                  <li>
+                    U heeft een erfelijkheidsonderzoek naar borst- en eierstokkanker gehad.
                   </li>
-                ))}
+                )}
                 
+                {/* Family genetic testing */}
+                {patientData.personalInfo.familyHadGeneticTest && (
+                  <li>
+                    Er is bij uw familie een erfelijkheidsonderzoek naar borst- en eierstokkanker uitgevoerd.
+                    
+                    {/* Immediate family genetic testing */}
+                    {patientData.familyHistory.immediateGeneticTest.length > 0 && (
+                      <ul className="list-[circle] list-inside ml-4">
+                        {patientData.familyHistory.immediateGeneticTest.map((member, index) => (
+                          <li key={`genetic-immediate-${index}`}>
+                            {getFamilyMemberLabel(member.relation)}: {getAbnormalityLabel(member.abnormality)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    
+                    {/* Maternal genetic testing */}
+                    {patientData.familyHistory.maternalGeneticTest.length > 0 && (
+                      <ul className="list-[circle] list-inside ml-4">
+                        {patientData.familyHistory.maternalGeneticTest.map((member, index) => (
+                          <li key={`genetic-maternal-${index}`}>
+                            {getMaternalRelativeLabel(member.relation)}: {getAbnormalityLabel(member.abnormality)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    
+                    {/* Paternal genetic testing */}
+                    {patientData.familyHistory.paternalGeneticTest.length > 0 && (
+                      <ul className="list-[circle] list-inside ml-4">
+                        {patientData.familyHistory.paternalGeneticTest.map((member, index) => (
+                          <li key={`genetic-paternal-${index}`}>
+                            {getPaternalRelativeLabel(member.relation)}: {getAbnormalityLabel(member.abnormality)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )}
+                
+                {/* Breast cancer in immediate family */}
+                {patientData.familyHistory.immediate.length > 0 && (
+                  <li>
+                    Directe familieleden met borstkanker:
+                    <ul className="list-[circle] list-inside ml-4">
+                      {patientData.familyHistory.immediate.map((member, index) => (
+                        <li key={`immediate-${index}`}>
+                          {getFamilyMemberLabel(member.relation)}: Gediagnosticeerd op leeftijd {member.diagnosisAge}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                )}
+                
+                {/* Ovarian cancer in female relatives */}
+                {patientData.familyHistory.ovarianCancer.length > 0 && (
+                  <li>
+                    Familieleden met eierstok- of eileiderkanker:
+                    <ul className="list-[circle] list-inside ml-4">
+                      {patientData.familyHistory.ovarianCancer.map((member, index) => (
+                        <li key={`ovarian-${index}`}>
+                          {getFemaleOvarianLabel(member.relation)}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                )}
+                
+                {/* Breast cancer in male relatives */}
+                {patientData.familyHistory.maleBreastCancer.length > 0 && (
+                  <li>
+                    Mannelijke familieleden met borstkanker:
+                    <ul className="list-[circle] list-inside ml-4">
+                      {patientData.familyHistory.maleBreastCancer.map((member, index) => (
+                        <li key={`male-breast-${index}`}>
+                          {getMaleBreastLabel(member.relation)}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                )}
+                
+                {/* Mother's side breast cancer */}
                 {patientData.familyHistory.maternal.length > 0 && (
                   <li>
-                    Mother's side: {patientData.familyHistory.maternal.length} affected relative(s)
+                    Moederskant: {patientData.familyHistory.maternal.length} aangetaste familieleden
                     {patientData.familyHistory.maternal.length > 0 && (
                       <ul className="list-[circle] list-inside ml-4">
                         {patientData.familyHistory.maternal.map((relative, index) => (
@@ -85,9 +208,10 @@ export default function Results({
                   </li>
                 )}
                 
+                {/* Father's side breast cancer */}
                 {patientData.familyHistory.paternal.length > 0 && (
                   <li>
-                    Father's side: {patientData.familyHistory.paternal.length} affected relative(s)
+                    Vaderskant: {patientData.familyHistory.paternal.length} aangetaste familieleden
                     {patientData.familyHistory.paternal.length > 0 && (
                       <ul className="list-[circle] list-inside ml-4">
                         {patientData.familyHistory.paternal.map((relative, index) => (
@@ -101,8 +225,10 @@ export default function Results({
                 {!patientData.personalInfo.hasBreastCancer && 
                  patientData.familyHistory.immediate.length === 0 && 
                  patientData.familyHistory.maternal.length === 0 && 
-                 patientData.familyHistory.paternal.length === 0 && (
-                  <li>No reported history of breast cancer.</li>
+                 patientData.familyHistory.paternal.length === 0 && 
+                 patientData.familyHistory.ovarianCancer.length === 0 &&
+                 patientData.familyHistory.maleBreastCancer.length === 0 && (
+                  <li>Geen gemelde geschiedenis van borst- of eierstokkanker.</li>
                 )}
               </ul>
             </div>
@@ -110,7 +236,7 @@ export default function Results({
 
           {/* Recommendations */}
           <div className="p-4 rounded-lg border border-slate-200">
-            <h3 className="text-lg font-medium mb-2">Recommendations:</h3>
+            <h3 className="text-lg font-medium mb-2">Aanbevelingen:</h3>
             <div className="space-y-2">
               {recommendations.map((recommendation, index) => (
                 <p key={index} className="flex items-start">
@@ -130,7 +256,7 @@ export default function Results({
               onClick={onBack}
               className="px-4 py-2"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+              <ArrowLeft className="mr-2 h-4 w-4" /> Vorige
             </Button>
             <Button 
               type="button" 
@@ -146,7 +272,7 @@ export default function Results({
             onClick={onReset}
             className="w-full px-4 py-2"
           >
-            <RefreshCw className="mr-2 h-4 w-4" /> Start a New Assessment
+            <RefreshCw className="mr-2 h-4 w-4" /> Begin een Nieuwe Beoordeling
           </Button>
         </div>
       </CardContent>

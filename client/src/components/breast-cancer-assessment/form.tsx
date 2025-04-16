@@ -10,12 +10,20 @@ const initialFormData: AssessmentFormData = {
   personalInfo: {
     age: 0,
     hasBreastCancer: false,
+    hadGeneticTest: false,
+    familyHadGeneticTest: false,
   },
   hasFamilyHistory: false,
   familyHistory: {
     maternal: [],
     paternal: [],
-    immediate: []
+    immediate: [],
+    immediateGeneticTest: [],
+    paternalGeneticTest: [],
+    maternalGeneticTest: [],
+    ovarianCancer: [],
+    maleBreastCancer: [],
+    hasBreastCancerInFamily: false
   }
 };
 
@@ -90,8 +98,8 @@ export default function BreastCancerAssessmentForm() {
     <div className="min-h-screen">
       <header className="bg-primary text-white shadow-md">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl md:text-3xl font-semibold">Breast Cancer Risk Assessment</h1>
-          <p className="text-sm md:text-base opacity-90 mt-1">Complete the questionnaire to receive a personalized risk assessment</p>
+          <h1 className="text-2xl md:text-3xl font-semibold">Borstkanker Risico Assessment</h1>
+          <p className="text-sm md:text-base opacity-90 mt-1">Vul de vragenlijst in om een gepersonaliseerde risicobeoordeling te ontvangen</p>
         </div>
       </header>
 
@@ -107,9 +115,9 @@ export default function BreastCancerAssessmentForm() {
           
           {/* Step indicators */}
           <div className="flex justify-between text-xs text-slate-500">
-            <span>Personal Information</span>
-            <span>Family History</span>
-            <span>Risk Assessment</span>
+            <span>Persoonlijke Informatie</span>
+            <span>Familie Geschiedenis</span>
+            <span>Risicobeoordeling</span>
           </div>
           
           {/* Form sections */}
@@ -148,12 +156,12 @@ export default function BreastCancerAssessmentForm() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <p className="text-sm">© 2023 Breast Cancer Risk Assessment Tool</p>
-              <p className="text-xs text-slate-400 mt-1">This tool is for informational purposes only and does not constitute medical advice.</p>
+              <p className="text-sm">© 2023 Borstkanker Risicobeoordeling Tool</p>
+              <p className="text-xs text-slate-400 mt-1">Deze tool is alleen voor informatieve doeleinden en vormt geen medisch advies.</p>
             </div>
             <div className="flex space-x-4">
-              <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors">Terms of Use</a>
+              <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors">Privacybeleid</a>
+              <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors">Gebruiksvoorwaarden</a>
               <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors">Contact</a>
             </div>
           </div>
