@@ -17,7 +17,6 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
   const [age, setAge] = useState<string>("");
   const [personalHistory, setPersonalHistory] = useState<string>("");
   const [diagnosisAge, setDiagnosisAge] = useState<string>("");
-  const [familyHistory, setFamilyHistory] = useState<string>("");
   const [hadGeneticTest, setHadGeneticTest] = useState<string>("");
   const [familyHadGeneticTest, setFamilyHadGeneticTest] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,10 +34,6 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
     if (initialData.personalInfo.diagnosisAge) {
       setDiagnosisAge(initialData.personalInfo.diagnosisAge.toString());
     }
-    
-    if (initialData.hasFamilyHistory !== undefined) {
-      setFamilyHistory(initialData.hasFamilyHistory ? "yes" : "no");
-    }
 
     if (initialData.personalInfo.hadGeneticTest !== undefined) {
       setHadGeneticTest(initialData.personalInfo.hadGeneticTest ? "yes" : "no");
@@ -48,6 +43,14 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
       setFamilyHadGeneticTest(initialData.personalInfo.familyHadGeneticTest ? "yes" : "no");
     }
   }, [initialData]);
+
+  const [familyHistory, setFamilyHistory] = useState<string>("");
+
+  useEffect(() => {
+    if (initialData.hasFamilyHistory !== undefined) {
+      setFamilyHistory(initialData.hasFamilyHistory ? "yes" : "no");
+    }
+  }, [initialData.hasFamilyHistory]);
 
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
@@ -134,7 +137,7 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
           {/* Vraag 1: Genetic testing question */}
           <div className="form-group">
             <div className="block text-sm font-medium text-slate-700 mb-2">
-              Vraag 1: Heeft u een erfelijkheidsonderzoek naar borst- en eierstokkanker gehad?
+              Heeft u een erfelijkheidsonderzoek naar borst- en eierstokkanker gehad?
             </div>
             <RadioGroup 
               value={hadGeneticTest} 
@@ -156,7 +159,7 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
           {/* Vraag 2: Family genetic testing question */}
           <div className="form-group">
             <div className="block text-sm font-medium text-slate-700 mb-2">
-              Vraag 2: Is er bij uw familie een erfelijkheidsonderzoek naar borst- en eierstokkanker uitgevoerd?
+              Is er bij uw familie een erfelijkheidsonderzoek naar borst- en eierstokkanker uitgevoerd?
             </div>
             <RadioGroup 
               value={familyHadGeneticTest} 

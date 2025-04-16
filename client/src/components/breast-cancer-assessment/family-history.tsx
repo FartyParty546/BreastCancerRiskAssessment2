@@ -14,9 +14,13 @@ import {
   GENETIC_ABNORMALITY_OPTIONS,
   FEMALE_MEMBERS_OVARIAN,
   MALE_MEMBERS_BREAST,
+  FEMALE_MEMBERS_MULTIPLE_BREAST_CANCER,
+  MALE_MEMBERS_PROSTATE_CANCER,
   GeneticTestMember,
   OvarianCancerMember,
-  BreastCancerMaleMember
+  BreastCancerMaleMember,
+  MultipleBreastCancerMember,
+  ProstateCancerMember
 } from "./types";
 import { ArrowLeft, ArrowRight, Plus, Minus } from "lucide-react";
 
@@ -58,6 +62,25 @@ export default function FamilyHistory({
   // Male breast cancer members
   const [maleBreastCancerMembers, setMaleBreastCancerMembers] = useState<Map<string, boolean>>(
     new Map(MALE_MEMBERS_BREAST.map(member => [member.value, false]))
+  );
+  
+  // Multiple breast cancer members
+  const [multipleBreastCancerMembers, setMultipleBreastCancerMembers] = useState<Map<string, { checked: boolean, age: string }>>(
+    new Map(FEMALE_MEMBERS_MULTIPLE_BREAST_CANCER.map(member => [member.value, { checked: false, age: "" }]))
+  );
+  
+  // Prostate cancer members
+  const [prostateCancerMembers, setProstateCancerMembers] = useState<Map<string, { checked: boolean, age: string }>>(
+    new Map(MALE_MEMBERS_PROSTATE_CANCER.map(member => [member.value, { checked: false, age: "" }]))
+  );
+  
+  // Paternal and maternal family members with breast cancer
+  const [paternalFamilyMembers, setPaternalFamilyMembers] = useState<Map<string, { checked: boolean, age: string }>>(
+    new Map()
+  );
+  
+  const [maternalFamilyMembers, setMaternalFamilyMembers] = useState<Map<string, { checked: boolean, age: string }>>(
+    new Map()
   );
   
   // Family breast cancer question

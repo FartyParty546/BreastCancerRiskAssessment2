@@ -18,11 +18,15 @@ const initialFormData: AssessmentFormData = {
     maternal: [],
     paternal: [],
     immediate: [],
+    paternalFamilyMembers: [],
+    maternalFamilyMembers: [],
     immediateGeneticTest: [],
     paternalGeneticTest: [],
     maternalGeneticTest: [],
     ovarianCancer: [],
     maleBreastCancer: [],
+    multipleBreastCancer: [],
+    prostateCancer: [],
     hasBreastCancerInFamily: false
   }
 };
