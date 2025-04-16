@@ -125,6 +125,32 @@ export default function FamilyHistory({
       setPaternalRelatives(initialData.paternal);
     }
     
+    if (initialData.maternalFamilyMembers.length > 0) {
+      const newMaternalFamilyMembers = new Map();
+      
+      initialData.maternalFamilyMembers.forEach(member => {
+        newMaternalFamilyMembers.set(member.relation, {
+          checked: true,
+          age: member.diagnosisAge.toString()
+        });
+      });
+      
+      setMaternalFamilyMembers(newMaternalFamilyMembers);
+    }
+    
+    if (initialData.paternalFamilyMembers.length > 0) {
+      const newPaternalFamilyMembers = new Map();
+      
+      initialData.paternalFamilyMembers.forEach(member => {
+        newPaternalFamilyMembers.set(member.relation, {
+          checked: true,
+          age: member.diagnosisAge.toString()
+        });
+      });
+      
+      setPaternalFamilyMembers(newPaternalFamilyMembers);
+    }
+    
     if (initialData.immediateGeneticTest.length > 0) {
       setImmediateGeneticTest(initialData.immediateGeneticTest);
     }
@@ -151,6 +177,32 @@ export default function FamilyHistory({
         newMaleMembers.set(member.relation, true);
       });
       setMaleBreastCancerMembers(newMaleMembers);
+    }
+    
+    if (initialData.multipleBreastCancer.length > 0) {
+      const newMultipleBreastCancerMembers = new Map(multipleBreastCancerMembers);
+      
+      initialData.multipleBreastCancer.forEach(member => {
+        newMultipleBreastCancerMembers.set(member.relation, {
+          checked: true,
+          age: member.firstDiagnosisAge.toString()
+        });
+      });
+      
+      setMultipleBreastCancerMembers(newMultipleBreastCancerMembers);
+    }
+    
+    if (initialData.prostateCancer.length > 0) {
+      const newProstateCancerMembers = new Map(prostateCancerMembers);
+      
+      initialData.prostateCancer.forEach(member => {
+        newProstateCancerMembers.set(member.relation, {
+          checked: true,
+          age: member.diagnosisAge.toString()
+        });
+      });
+      
+      setProstateCancerMembers(newProstateCancerMembers);
     }
     
     if (initialData.hasBreastCancerInFamily !== undefined) {
@@ -240,6 +292,78 @@ export default function FamilyHistory({
     });
   };
   
+  const handleMultipleBreastCancerChange = (value: string, checked: boolean) => {
+    setMultipleBreastCancerMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, checked });
+      return newMap;
+    });
+  };
+  
+  const handleMultipleBreastCancerAgeChange = (value: string, age: string) => {
+    setMultipleBreastCancerMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, age });
+      return newMap;
+    });
+  };
+  
+  const handleProstateCancerChange = (value: string, checked: boolean) => {
+    setProstateCancerMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, checked });
+      return newMap;
+    });
+  };
+  
+  const handleProstateCancerAgeChange = (value: string, age: string) => {
+    setProstateCancerMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, age });
+      return newMap;
+    });
+  };
+  
+  const handlePaternalFamilyMemberChange = (value: string, checked: boolean) => {
+    setPaternalFamilyMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, checked });
+      return newMap;
+    });
+  };
+  
+  const handlePaternalFamilyMemberAgeChange = (value: string, age: string) => {
+    setPaternalFamilyMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, age });
+      return newMap;
+    });
+  };
+  
+  const handleMaternalFamilyMemberChange = (value: string, checked: boolean) => {
+    setMaternalFamilyMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, checked });
+      return newMap;
+    });
+  };
+  
+  const handleMaternalFamilyMemberAgeChange = (value: string, age: string) => {
+    setMaternalFamilyMembers(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(value) || { checked: false, age: "" };
+      newMap.set(value, { ...currentEntry, age });
+      return newMap;
+    });
+  };
+  
   const handleFamilyMemberClick = (relation: string) => {
     setCurrentRelation(relation);
     setDiagnosisAge("");
@@ -274,6 +398,42 @@ export default function FamilyHistory({
           }
         }
       });
+      
+      // Check maternal family members
+      maternalFamilyMembers.forEach((data, relation) => {
+        if (data.checked) {
+          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
+            newErrors[`maternal_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
+          }
+        }
+      });
+      
+      // Check paternal family members
+      paternalFamilyMembers.forEach((data, relation) => {
+        if (data.checked) {
+          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
+            newErrors[`paternal_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
+          }
+        }
+      });
+      
+      // Check multiple breast cancer members
+      multipleBreastCancerMembers.forEach((data, relation) => {
+        if (data.checked) {
+          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
+            newErrors[`multiple_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
+          }
+        }
+      });
+      
+      // Check prostate cancer members
+      prostateCancerMembers.forEach((data, relation) => {
+        if (data.checked) {
+          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
+            newErrors[`prostate_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
+          }
+        }
+      });
     }
     
     // If there are any errors, update state and return
@@ -293,16 +453,48 @@ export default function FamilyHistory({
         diagnosisAge: parseInt(data.age, 10)
       }));
     
+    // Prepare maternal family members with breast cancer
+    const maternalFamilyMembersData = Array.from(maternalFamilyMembers.entries())
+      .filter(([_, data]) => data.checked)
+      .map(([relation, data]) => ({
+        relation,
+        diagnosisAge: parseInt(data.age, 10)
+      }));
+    
+    // Prepare paternal family members with breast cancer
+    const paternalFamilyMembersData = Array.from(paternalFamilyMembers.entries())
+      .filter(([_, data]) => data.checked)
+      .map(([relation, data]) => ({
+        relation,
+        diagnosisAge: parseInt(data.age, 10)
+      }));
+    
+    // Prepare multiple breast cancer members
+    const multipleBreastCancer = Array.from(multipleBreastCancerMembers.entries())
+      .filter(([_, data]) => data.checked)
+      .map(([relation, data]) => ({
+        relation,
+        firstDiagnosisAge: parseInt(data.age, 10)
+      }));
+    
+    // Prepare prostate cancer members
+    const prostateCancer = Array.from(prostateCancerMembers.entries())
+      .filter(([_, data]) => data.checked)
+      .map(([relation, data]) => ({
+        relation,
+        diagnosisAge: parseInt(data.age, 10)
+      }));
+    
     // Prepare ovarian cancer members
     const ovarianCancer = Array.from(ovarianCancerMembers.entries())
-      .filter(([_, checked]) => checked)
+      .filter(([_, checked]) => checked && _ !== 'none')
       .map(([relation, _]) => ({
         relation
       }));
     
     // Prepare male breast cancer members
     const maleBreastCancer = Array.from(maleBreastCancerMembers.entries())
-      .filter(([_, checked]) => checked)
+      .filter(([_, checked]) => checked && _ !== 'none')
       .map(([relation, _]) => ({
         relation
       }));
@@ -312,11 +504,15 @@ export default function FamilyHistory({
       maternal: maternalRelatives,
       paternal: paternalRelatives,
       immediate,
+      paternalFamilyMembers: paternalFamilyMembersData,
+      maternalFamilyMembers: maternalFamilyMembersData,
       immediateGeneticTest,
       maternalGeneticTest,
       paternalGeneticTest,
       ovarianCancer,
       maleBreastCancer,
+      multipleBreastCancer,
+      prostateCancer,
       hasBreastCancerInFamily: hasBreastCancerInFamily === "yes"
     });
   };
@@ -503,7 +699,7 @@ export default function FamilyHistory({
               </h3>
               
               <div className="space-y-3">
-                {FEMALE_MEMBERS_OVARIAN.filter(member => member.value !== 'none').map(member => (
+                {FEMALE_MEMBERS_OVARIAN.map(member => (
                   <div key={member.value} className="flex items-center">
                     <Checkbox 
                       id={`ovarian-${member.value}`} 
@@ -528,7 +724,7 @@ export default function FamilyHistory({
               </h3>
               
               <div className="space-y-3">
-                {MALE_MEMBERS_BREAST.filter(member => member.value !== 'none').map(member => (
+                {MALE_MEMBERS_BREAST.map(member => (
                   <div key={member.value} className="flex items-center">
                     <Checkbox 
                       id={`male-breast-${member.value}`} 
@@ -644,27 +840,73 @@ export default function FamilyHistory({
               </div>
             )}
             
-            {/* Mother's side */}
+            {/* Vraag 10: Maternal family members with breast cancer (details) */}
             {hasBreastCancerInFamily === "yes" && (
-              <div className="form-group">
-                <Label htmlFor="motherSideFamily" className="block text-sm font-medium text-slate-700 mb-2">
-                  Welke familieleden aan uw moederskant hebben borstkanker gehad?
-                </Label>
-                <select 
-                  id="motherSideFamily" 
-                  multiple
-                  value={maternalRelatives}
-                  onChange={handleMaternalSelect}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  size={5}
-                >
-                  {MATERNAL_RELATIVES.map(relative => (
-                    <option key={relative.value} value={relative.value}>
-                      {relative.label}
-                    </option>
+              <div className="form-group border p-4 rounded-md bg-slate-50">
+                <h3 className="text-md font-medium mb-4 text-slate-800">
+                  Vraag 10: Bij welke familieleden aan uw moederskant is borstkanker ontdekt? En op welke leeftijd?
+                </h3>
+                
+                {/* Show list of maternal family members who have been added with diagnosis age */}
+                {Array.from(maternalFamilyMembers.entries())
+                  .filter(([_, data]) => data.checked)
+                  .map(([relation, data]) => (
+                    <div key={relation} className="flex items-center justify-between border-b py-2">
+                      <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMaternalFamilyMemberChange(relation, false)}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                }
+                
+                {/* Form to add a new maternal family member with breast cancer */}
+                <div className="mt-4 space-y-4">
+                  {MATERNAL_RELATIVES.filter(member => 
+                    member.value !== 'none' && !maternalFamilyMembers.get(member.value)?.checked
+                  ).map(member => (
+                    <div key={member.value} className="flex flex-col space-y-2">
+                      <div className="flex items-center">
+                        <Checkbox
+                          id={`maternal-${member.value}`}
+                          checked={maternalFamilyMembers.get(member.value)?.checked || false}
+                          onCheckedChange={(checked) => 
+                            handleMaternalFamilyMemberChange(member.value, checked as boolean)
+                          }
+                          className="h-5 w-5"
+                        />
+                        <Label htmlFor={`maternal-${member.value}`} className="ml-2">
+                          {member.label}
+                        </Label>
+                      </div>
+                      
+                      {maternalFamilyMembers.get(member.value)?.checked && (
+                        <div className="ml-7">
+                          <Label htmlFor={`maternal-age-${member.value}`} className="text-sm">
+                            Leeftijd bij diagnose:
+                          </Label>
+                          <Input
+                            type="number"
+                            id={`maternal-age-${member.value}`}
+                            value={maternalFamilyMembers.get(member.value)?.age || ""}
+                            onChange={(e) => handleMaternalFamilyMemberAgeChange(member.value, e.target.value)}
+                            min="0"
+                            max="120"
+                            className="w-24 inline-block ml-2"
+                          />
+                          {errors[`maternal_age_${member.value}`] && (
+                            <p className="text-red-500 text-xs mt-1">{errors[`maternal_age_${member.value}`]}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ))}
-                </select>
-                <p className="text-xs text-slate-500 mt-1">Houd Ctrl (of Cmd op Mac) ingedrukt om meerdere te selecteren</p>
+                </div>
               </div>
             )}
 
