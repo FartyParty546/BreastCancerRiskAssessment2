@@ -69,11 +69,9 @@ export default function Results({
   // Translate risk level to Dutch
   const translateRiskLevel = (riskLevel: string): string => {
     switch(riskLevel) {
-      case 'High': return 'Hoog';
-      case 'Moderate': return 'Gemiddeld';
-      case 'Slightly Elevated': return 'Licht Verhoogd';
-      case 'Average': return 'Gemiddeld';
-      case 'Follow-up Care Needed': return 'Vervolgzorg Nodig';
+      case 'High': return 'Verwijs naar klinische genetica';
+      case 'Moderate': return 'Jaarlijkse screening buiten het BVO';
+      case 'Average': return 'Screening via het BVO';
       default: return riskLevel;
     }
   };
