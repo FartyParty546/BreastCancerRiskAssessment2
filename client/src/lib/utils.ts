@@ -97,22 +97,22 @@ export function getRecommendations(riskLevel: string) {
   const recommendations = [];
   
   if (riskLevel === 'High') {
-    recommendations.push('Consider genetic counseling and testing for BRCA1/BRCA2 mutations');
-    recommendations.push('Schedule more frequent clinical breast exams (every 6-12 months)');
-    recommendations.push('Begin annual mammography screening earlier than average risk individuals');
-    recommendations.push('Discuss additional screening with MRI with your healthcare provider');
+    recommendations.push('Overweeg genetische counseling en testen op BRCA1/BRCA2-mutaties');
+    recommendations.push('Plan vaker klinische borstonderzoeken (elke 6-12 maanden)');
+    recommendations.push('Begin eerder met jaarlijkse mammografie screening dan personen met gemiddeld risico');
+    recommendations.push('Bespreek aanvullende screening met MRI met uw zorgverlener');
   } else if (riskLevel === 'Moderate') {
-    recommendations.push('Consider genetic counseling to evaluate your risk more precisely');
-    recommendations.push('Follow screening guidelines appropriate for moderate risk individuals');
-    recommendations.push('Discuss the potential benefits of risk-reducing medications with your healthcare provider');
+    recommendations.push('Overweeg genetische counseling om uw risico nauwkeuriger te evalueren');
+    recommendations.push('Volg screeningsrichtlijnen die geschikt zijn voor personen met matig risico');
+    recommendations.push('Bespreek de mogelijke voordelen van risicoverlagende medicatie met uw zorgverlener');
   } else if (riskLevel === 'Follow-up Care Needed') {
-    recommendations.push('Continue with your recommended follow-up care plan');
-    recommendations.push('Consider genetic testing if not already done');
-    recommendations.push('Follow cancer surveillance guidelines for breast cancer survivors');
+    recommendations.push('Ga door met uw aanbevolen nazorgplan');
+    recommendations.push('Overweeg genetisch onderzoek als dit nog niet is gedaan');
+    recommendations.push('Volg de richtlijnen voor kankertoezicht voor overlevenden van borstkanker');
   } else {
-    recommendations.push('Follow general population screening guidelines');
-    recommendations.push('Maintain a healthy lifestyle with regular exercise and balanced diet');
-    recommendations.push('Be familiar with how your breasts normally look and feel, and report any changes to your healthcare provider');
+    recommendations.push('Volg de algemene screeningsrichtlijnen voor de bevolking');
+    recommendations.push('Handhaaf een gezonde levensstijl met regelmatige lichaamsbeweging en een uitgebalanceerd dieet');
+    recommendations.push('Wees bekend met hoe uw borsten er normaal uitzien en aanvoelen, en meld eventuele veranderingen aan uw zorgverlener');
   }
   
   return recommendations;

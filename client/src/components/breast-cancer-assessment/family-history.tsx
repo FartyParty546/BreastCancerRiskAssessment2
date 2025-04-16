@@ -372,7 +372,7 @@ export default function FamilyHistory({
             )}
             
             {/* Vraag 4: Paternal family members genetic testing */}
-            {initialData.familyHadGeneticTest && (
+            {initialData.paternalGeneticTest.length > 0 || (
               <div className="form-group border p-4 rounded-md bg-slate-50">
                 <h3 className="text-md font-medium mb-4 text-slate-800">
                   Vraag 4: Welke familieleden van uw vaderskant hebben een erfelijkheidsonderzoek naar borst- en eierstokkanker gehad?
@@ -423,7 +423,7 @@ export default function FamilyHistory({
             )}
             
             {/* Vraag 5: Maternal family members genetic testing */}
-            {initialData.familyHadGeneticTest && (
+            {initialData.maternalGeneticTest.length > 0 || (
               <div className="form-group border p-4 rounded-md bg-slate-50">
                 <h3 className="text-md font-medium mb-4 text-slate-800">
                   Vraag 5: Welke familieleden van uw moederskant hebben een erfelijkheidsonderzoek naar borst- en eierstokkanker gehad?
