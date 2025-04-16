@@ -375,8 +375,36 @@ export default function FamilyHistory({
       return;
     }
     
-    handleCheckboxChange(currentRelation, true);
-    handleAgeChange(currentRelation, diagnosisAge);
+    if (currentRelation.startsWith('maternal_')) {
+      // Extract the original relation name (remove the 'maternal_' prefix and timestamp suffix)
+      const relationParts = currentRelation.split('_');
+      const baseRelation = relationParts.slice(1, -1).join('_'); // Remove the first and last part
+      const newRelation = currentRelation;
+      
+      // Add to maternal family members
+      setMaternalFamilyMembers(prev => {
+        const newMap = new Map(prev);
+        newMap.set(newRelation, { checked: true, age: diagnosisAge });
+        return newMap;
+      });
+    } else if (currentRelation.startsWith('paternal_')) {
+      // Extract the original relation name (remove the 'paternal_' prefix and timestamp suffix)
+      const relationParts = currentRelation.split('_');
+      const baseRelation = relationParts.slice(1, -1).join('_'); // Remove the first and last part
+      const newRelation = currentRelation;
+      
+      // Add to paternal family members
+      setPaternalFamilyMembers(prev => {
+        const newMap = new Map(prev);
+        newMap.set(newRelation, { checked: true, age: diagnosisAge });
+        return newMap;
+      });
+    } else {
+      // Original behavior for immediate family
+      handleCheckboxChange(currentRelation, true);
+      handleAgeChange(currentRelation, diagnosisAge);
+    }
+    
     setShowDiagnosisAgeDialog(false);
   };
 
@@ -417,23 +445,8 @@ export default function FamilyHistory({
         }
       });
       
-      // Check multiple breast cancer members
-      multipleBreastCancerMembers.forEach((data, relation) => {
-        if (data.checked) {
-          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
-            newErrors[`multiple_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
-          }
-        }
-      });
-      
-      // Check prostate cancer members
-      prostateCancerMembers.forEach((data, relation) => {
-        if (data.checked) {
-          if (!data.age || isNaN(parseInt(data.age, 10)) || parseInt(data.age, 10) < 0) {
-            newErrors[`prostate_age_${relation}`] = `Voer een geldige leeftijd bij diagnose in`;
-          }
-        }
-      });
+      // For questions 12 and 13, we don't need to validate age fields anymore
+      // Just check if at least one option is selected if breast cancer in family is "yes"
     }
     
     // If there are any errors, update state and return
@@ -519,7 +532,21 @@ export default function FamilyHistory({
 
   // Helper function to get the label for a relation
   const getRelationLabel = (relation: string): string => {
-    // Check in all arrays
+    // Check if this is a prefixed relation (maternal_X_timestamp or paternal_X_timestamp)
+    if (relation.startsWith('maternal_') || relation.startsWith('paternal_')) {
+      const parts = relation.split('_');
+      // Use the base relation (remove prefix and timestamp)
+      const baseRelation = parts.slice(1, -1).join('_');
+      
+      // Check in arrays
+      const maternalRelative = MATERNAL_RELATIVES.find(member => member.value === baseRelation);
+      if (maternalRelative) return maternalRelative.label;
+      
+      const paternalRelative = PATERNAL_RELATIVES.find(member => member.value === baseRelation);
+      if (paternalRelative) return paternalRelative.label;
+    }
+    
+    // Check in all arrays for direct matches
     const familyMember = FAMILY_MEMBERS.find(member => member.value === relation);
     if (familyMember) return familyMember.label;
     
@@ -894,7 +921,7 @@ export default function FamilyHistory({
                           size="sm"
                           onClick={() => {
                             // Create a temporary relation key with timestamp to allow multiple of same relation
-                            const newRelation = `${member.value}_${Date.now()}`;
+                            const newRelation = `maternal_${member.value}_${Date.now()}`;
                             setCurrentRelation(newRelation);
                             setDiagnosisAge("");
                             setShowDiagnosisAgeDialog(true);
@@ -958,7 +985,7 @@ export default function FamilyHistory({
                           size="sm"
                           onClick={() => {
                             // Create a temporary relation key with timestamp to allow multiple of same relation
-                            const newRelation = `${member.value}_${Date.now()}`;
+                            const newRelation = `paternal_${member.value}_${Date.now()}`;
                             setCurrentRelation(newRelation);
                             setDiagnosisAge("");
                             setShowDiagnosisAgeDialog(true);
