@@ -800,30 +800,37 @@ export default function FamilyHistory({
                   Vraag 9: Bij welke familieleden in uw eigen gezin is er borstkanker ontdekt?
                 </h3>
                 
-                <div className="mb-4">
-                  {/* Show list of immediate family members who have been added with diagnosis age */}
-                  {Array.from(immediateFamily.entries())
+                <div className="space-y-4">
+                  {/* List of added immediate family members with diagnosis age */}
+                  {immediateFamily.size > 0 && Array.from(immediateFamily.entries())
                     .filter(([_, data]) => data.checked)
-                    .map(([relation, data]) => (
-                      <div key={relation} className="flex items-center justify-between border-b py-2">
-                        <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCheckboxChange(relation, false)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
-                  }
+                    .length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Toegevoegde familieleden:</h4>
+                      <ul className="space-y-2">
+                        {Array.from(immediateFamily.entries())
+                          .filter(([_, data]) => data.checked)
+                          .map(([relation, data]) => (
+                            <li key={relation} className="flex items-center justify-between border-b pb-2">
+                              <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCheckboxChange(relation, false)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))
+                        }
+                      </ul>
+                    </div>
+                  )}
                   
-                  {/* Buttons to add family members */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {FAMILY_MEMBERS.filter(member => 
-                      member.value !== 'none' && !immediateFamily.get(member.value)?.checked
-                    ).map(member => (
+                  {/* Add new immediate family member button */}
+                  <div className="flex flex-wrap gap-2">
+                    {FAMILY_MEMBERS.filter(member => member.value !== 'none').map(member => (
                       <Button 
                         key={member.value}
                         type="button" 
@@ -844,68 +851,62 @@ export default function FamilyHistory({
             {hasBreastCancerInFamily === "yes" && (
               <div className="form-group border p-4 rounded-md bg-slate-50">
                 <h3 className="text-md font-medium mb-4 text-slate-800">
-                  Vraag 10: Bij welke familieleden aan uw moederskant is borstkanker ontdekt? En op welke leeftijd?
+                  Vraag 10: Bij welke familieleden aan uw moederskant is borstkanker ontdekt?
                 </h3>
                 
-                {/* Show list of maternal family members who have been added with diagnosis age */}
-                {Array.from(maternalFamilyMembers.entries())
-                  .filter(([_, data]) => data.checked)
-                  .map(([relation, data]) => (
-                    <div key={relation} className="flex items-center justify-between border-b py-2">
-                      <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleMaternalFamilyMemberChange(relation, false)}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
+                <div className="space-y-4">
+                  {/* List of added maternal family members with breast cancer */}
+                  {maternalFamilyMembers.size > 0 && Array.from(maternalFamilyMembers.entries())
+                    .filter(([_, data]) => data.checked)
+                    .length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Toegevoegde familieleden (moederskant):</h4>
+                      <ul className="space-y-2">
+                        {Array.from(maternalFamilyMembers.entries())
+                          .filter(([_, data]) => data.checked)
+                          .map(([relation, data]) => (
+                            <li key={relation} className="flex items-center justify-between border-b pb-2">
+                              <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleMaternalFamilyMemberChange(relation, false)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))
+                        }
+                      </ul>
                     </div>
-                  ))
-                }
-                
-                {/* Form to add a new maternal family member with breast cancer */}
-                <div className="mt-4 space-y-4">
-                  {MATERNAL_RELATIVES.filter(member => 
-                    member.value !== 'none' && !maternalFamilyMembers.get(member.value)?.checked
-                  ).map(member => (
-                    <div key={member.value} className="flex flex-col space-y-2">
-                      <div className="flex items-center">
-                        <Checkbox
-                          id={`maternal-${member.value}`}
-                          checked={maternalFamilyMembers.get(member.value)?.checked || false}
-                          onCheckedChange={(checked) => 
-                            handleMaternalFamilyMemberChange(member.value, checked as boolean)
-                          }
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor={`maternal-${member.value}`} className="ml-2">
-                          {member.label}
-                        </Label>
-                      </div>
-                      
-                      {maternalFamilyMembers.get(member.value)?.checked && (
-                        <div className="ml-7">
-                          <Label htmlFor={`maternal-age-${member.value}`} className="text-sm">
-                            Leeftijd bij diagnose:
-                          </Label>
-                          <Input
-                            type="number"
-                            id={`maternal-age-${member.value}`}
-                            value={maternalFamilyMembers.get(member.value)?.age || ""}
-                            onChange={(e) => handleMaternalFamilyMemberAgeChange(member.value, e.target.value)}
-                            min="0"
-                            max="120"
-                            className="w-24 inline-block ml-2"
-                          />
-                          {errors[`maternal_age_${member.value}`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`maternal_age_${member.value}`]}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  )}
+                  
+                  {/* Add new maternal family member buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {MATERNAL_RELATIVES.filter(member => member.value !== 'none').map(member => {
+                      // Allow multiple selections of the same member
+                      return (
+                        <Button 
+                          key={member.value}
+                          type="button" 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Create a temporary relation key with timestamp to allow multiple of same relation
+                            const newRelation = `${member.value}_${Date.now()}`;
+                            setCurrentRelation(newRelation);
+                            setDiagnosisAge("");
+                            setShowDiagnosisAgeDialog(true);
+                            // We'll handle adding it to maternalFamilyMembers when user confirms the diagnosis age
+                          }}
+                          className="flex items-center"
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> {member.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -914,68 +915,62 @@ export default function FamilyHistory({
             {hasBreastCancerInFamily === "yes" && (
               <div className="form-group border p-4 rounded-md bg-slate-50">
                 <h3 className="text-md font-medium mb-4 text-slate-800">
-                  Vraag 11: Bij welke familieleden aan uw vaderskant is borstkanker ontdekt? En op welke leeftijd?
+                  Vraag 11: Bij welke familieleden aan uw vaderskant is borstkanker ontdekt?
                 </h3>
                 
-                {/* Show list of paternal family members who have been added with diagnosis age */}
-                {Array.from(paternalFamilyMembers.entries())
-                  .filter(([_, data]) => data.checked)
-                  .map(([relation, data]) => (
-                    <div key={relation} className="flex items-center justify-between border-b py-2">
-                      <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handlePaternalFamilyMemberChange(relation, false)}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
+                <div className="space-y-4">
+                  {/* List of added paternal family members with breast cancer */}
+                  {paternalFamilyMembers.size > 0 && Array.from(paternalFamilyMembers.entries())
+                    .filter(([_, data]) => data.checked)
+                    .length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Toegevoegde familieleden (vaderskant):</h4>
+                      <ul className="space-y-2">
+                        {Array.from(paternalFamilyMembers.entries())
+                          .filter(([_, data]) => data.checked)
+                          .map(([relation, data]) => (
+                            <li key={relation} className="flex items-center justify-between border-b pb-2">
+                              <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handlePaternalFamilyMemberChange(relation, false)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))
+                        }
+                      </ul>
                     </div>
-                  ))
-                }
-                
-                {/* Form to add a new paternal family member with breast cancer */}
-                <div className="mt-4 space-y-4">
-                  {PATERNAL_RELATIVES.filter(member => 
-                    member.value !== 'none' && !paternalFamilyMembers.get(member.value)?.checked
-                  ).map(member => (
-                    <div key={member.value} className="flex flex-col space-y-2">
-                      <div className="flex items-center">
-                        <Checkbox
-                          id={`paternal-${member.value}`}
-                          checked={paternalFamilyMembers.get(member.value)?.checked || false}
-                          onCheckedChange={(checked) => 
-                            handlePaternalFamilyMemberChange(member.value, checked as boolean)
-                          }
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor={`paternal-${member.value}`} className="ml-2">
-                          {member.label}
-                        </Label>
-                      </div>
-                      
-                      {paternalFamilyMembers.get(member.value)?.checked && (
-                        <div className="ml-7">
-                          <Label htmlFor={`paternal-age-${member.value}`} className="text-sm">
-                            Leeftijd bij diagnose:
-                          </Label>
-                          <Input
-                            type="number"
-                            id={`paternal-age-${member.value}`}
-                            value={paternalFamilyMembers.get(member.value)?.age || ""}
-                            onChange={(e) => handlePaternalFamilyMemberAgeChange(member.value, e.target.value)}
-                            min="0"
-                            max="120"
-                            className="w-24 inline-block ml-2"
-                          />
-                          {errors[`paternal_age_${member.value}`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`paternal_age_${member.value}`]}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  )}
+                  
+                  {/* Add new paternal family member buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {PATERNAL_RELATIVES.filter(member => member.value !== 'none').map(member => {
+                      // Allow multiple selections of the same member
+                      return (
+                        <Button 
+                          key={member.value}
+                          type="button" 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Create a temporary relation key with timestamp to allow multiple of same relation
+                            const newRelation = `${member.value}_${Date.now()}`;
+                            setCurrentRelation(newRelation);
+                            setDiagnosisAge("");
+                            setShowDiagnosisAgeDialog(true);
+                            // We'll handle adding it to paternalFamilyMembers when user confirms the diagnosis age
+                          }}
+                          className="flex items-center"
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> {member.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -984,7 +979,7 @@ export default function FamilyHistory({
             {hasBreastCancerInFamily === "yes" && (
               <div className="form-group border p-4 rounded-md bg-slate-50">
                 <h3 className="text-md font-medium mb-4 text-slate-800">
-                  Vraag 12: Heeft iemand van onderstaande familieleden meerdere keren borstkanker gehad? Zo ja, op welke leeftijd kreeg deze persoon voor de eerste keer borstkanker?
+                  Vraag 12: Heeft iemand van onderstaande familieleden meerdere keren borstkanker gehad?
                 </h3>
                 
                 {/* Show list of family members with multiple breast cancer diagnoses */}
@@ -992,7 +987,7 @@ export default function FamilyHistory({
                   .filter(([_, data]) => data.checked)
                   .map(([relation, data]) => (
                     <div key={relation} className="flex items-center justify-between border-b py-2">
-                      <span>{getRelationLabel(relation)} - Leeftijd bij eerste diagnose: {data.age}</span>
+                      <span>{getRelationLabel(relation)}</span>
                       <Button
                         type="button"
                         variant="ghost"
@@ -1010,40 +1005,18 @@ export default function FamilyHistory({
                   {FEMALE_MEMBERS_MULTIPLE_BREAST_CANCER.filter(member => 
                     member.value !== 'none' && !multipleBreastCancerMembers.get(member.value)?.checked
                   ).map(member => (
-                    <div key={member.value} className="flex flex-col space-y-2">
-                      <div className="flex items-center">
-                        <Checkbox
-                          id={`multiple-breast-${member.value}`}
-                          checked={multipleBreastCancerMembers.get(member.value)?.checked || false}
-                          onCheckedChange={(checked) => 
-                            handleMultipleBreastCancerChange(member.value, checked as boolean)
-                          }
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor={`multiple-breast-${member.value}`} className="ml-2">
-                          {member.label}
-                        </Label>
-                      </div>
-                      
-                      {multipleBreastCancerMembers.get(member.value)?.checked && (
-                        <div className="ml-7">
-                          <Label htmlFor={`multiple-breast-age-${member.value}`} className="text-sm">
-                            Leeftijd bij eerste diagnose:
-                          </Label>
-                          <Input
-                            type="number"
-                            id={`multiple-breast-age-${member.value}`}
-                            value={multipleBreastCancerMembers.get(member.value)?.age || ""}
-                            onChange={(e) => handleMultipleBreastCancerAgeChange(member.value, e.target.value)}
-                            min="0"
-                            max="120"
-                            className="w-24 inline-block ml-2"
-                          />
-                          {errors[`multiple_age_${member.value}`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`multiple_age_${member.value}`]}</p>
-                          )}
-                        </div>
-                      )}
+                    <div key={member.value} className="flex items-center">
+                      <Checkbox
+                        id={`multiple-breast-${member.value}`}
+                        checked={multipleBreastCancerMembers.get(member.value)?.checked || false}
+                        onCheckedChange={(checked) => 
+                          handleMultipleBreastCancerChange(member.value, checked as boolean)
+                        }
+                        className="h-5 w-5"
+                      />
+                      <Label htmlFor={`multiple-breast-${member.value}`} className="ml-2">
+                        {member.label}
+                      </Label>
                     </div>
                   ))}
                 </div>
@@ -1053,7 +1026,7 @@ export default function FamilyHistory({
             {/* Vraag 13: Prostate cancer diagnoses */}
             <div className="form-group border p-4 rounded-md bg-slate-50">
               <h3 className="text-md font-medium mb-4 text-slate-800">
-                Vraag 13: Is er bij iemand van onderstaande mannelijke familieleden prostaatkanker ontdekt vóór hun 60e levensjaar? Zo ja, op welke leeftijd?
+                Vraag 13: Is er bij iemand van onderstaande mannelijke familieleden prostaatkanker ontdekt vóór hun 60e levensjaar?
               </h3>
               
               {/* Show list of family members with prostate cancer */}
@@ -1061,7 +1034,7 @@ export default function FamilyHistory({
                 .filter(([_, data]) => data.checked)
                 .map(([relation, data]) => (
                   <div key={relation} className="flex items-center justify-between border-b py-2">
-                    <span>{getRelationLabel(relation)} - Leeftijd bij diagnose: {data.age}</span>
+                    <span>{getRelationLabel(relation)}</span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1079,44 +1052,22 @@ export default function FamilyHistory({
                 {MALE_MEMBERS_PROSTATE_CANCER.filter(member => 
                   member.value !== 'none' && !prostateCancerMembers.get(member.value)?.checked
                 ).map(member => (
-                  <div key={member.value} className="flex flex-col space-y-2">
-                    <div className="flex items-center">
-                      <Checkbox
-                        id={`prostate-${member.value}`}
-                        checked={prostateCancerMembers.get(member.value)?.checked || false}
-                        onCheckedChange={(checked) => 
-                          handleProstateCancerChange(member.value, checked as boolean)
-                        }
-                        className="h-5 w-5"
-                      />
-                      <Label htmlFor={`prostate-${member.value}`} className="ml-2">
-                        {member.label}
-                      </Label>
-                    </div>
-                    
-                    {prostateCancerMembers.get(member.value)?.checked && (
-                      <div className="ml-7">
-                        <Label htmlFor={`prostate-age-${member.value}`} className="text-sm">
-                          Leeftijd bij diagnose:
-                        </Label>
-                        <Input
-                          type="number"
-                          id={`prostate-age-${member.value}`}
-                          value={prostateCancerMembers.get(member.value)?.age || ""}
-                          onChange={(e) => handleProstateCancerAgeChange(member.value, e.target.value)}
-                          min="0"
-                          max="60"
-                          className="w-24 inline-block ml-2"
-                        />
-                        <span className="ml-2 text-xs text-slate-500">(jonger dan 60)</span>
-                        {errors[`prostate_age_${member.value}`] && (
-                          <p className="text-red-500 text-xs mt-1">{errors[`prostate_age_${member.value}`]}</p>
-                        )}
-                      </div>
-                    )}
+                  <div key={member.value} className="flex items-center">
+                    <Checkbox
+                      id={`prostate-${member.value}`}
+                      checked={prostateCancerMembers.get(member.value)?.checked || false}
+                      onCheckedChange={(checked) => 
+                        handleProstateCancerChange(member.value, checked as boolean)
+                      }
+                      className="h-5 w-5"
+                    />
+                    <Label htmlFor={`prostate-${member.value}`} className="ml-2">
+                      {member.label}
+                    </Label>
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-slate-500 mt-2">Selecteer alleen familieleden waarbij prostaatkanker werd ontdekt vóór hun 60e levensjaar.</p>
             </div>
             
             {errors.family && <p className="text-red-500 text-sm">{errors.family}</p>}
