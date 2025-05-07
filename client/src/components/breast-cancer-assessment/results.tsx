@@ -12,6 +12,7 @@ import {
 } from "./types";
 import { ArrowLeft, DownloadIcon, RefreshCw, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getRecommendations } from "@/lib/utils";
 
 interface ResultsProps {
   onBack: () => void;
@@ -31,21 +32,24 @@ export default function Results({
   patientData 
 }: ResultsProps) {
   // Helper function to get family member label
-  const getFamilyMemberLabel = (value: string) => {
-    const member = FAMILY_MEMBERS.find(m => m.value === value);
-    return member ? member.label : value;
+  const getFamilyMemberLabel = (relation: string): string => {
+    const member = FAMILY_MEMBERS.find((m) => m.value === relation);
+    return member ? member.label : relation;
   };
+
+  const userAge = patientData.personalInfo.age;
   
+  const ageBasedRecommendations = getRecommendations(results.riskLevel, userAge);
   // Helper function to get maternal relative label
-  const getMaternalRelativeLabel = (value: string) => {
-    const relative = MATERNAL_RELATIVES.find(r => r.value === value);
-    return relative ? relative.label : value;
+  const getMaternalRelativeLabel = (relation: string): string => {
+    const member = MATERNAL_RELATIVES.find((m) => m.value === relation);
+    return member ? member.label : relation;
   };
   
   // Helper function to get paternal relative label
-  const getPaternalRelativeLabel = (value: string) => {
-    const relative = PATERNAL_RELATIVES.find(r => r.value === value);
-    return relative ? relative.label : value;
+  const getPaternalRelativeLabel = (relation: string) => {
+    const member = PATERNAL_RELATIVES.find((m) => m.value === relation);
+    return member ? member.label : relation;
   };
   
   // Helper function to get abnormality label
@@ -74,6 +78,12 @@ export default function Results({
       case 'Average': return 'Screening via het BVO';
       default: return riskLevel;
     }
+  };
+
+
+
+  const trimRelation = (relation: string): string => {
+    return relation.replace(/^(immediate_|maternal_|paternal_)/, '').replace(/_\d+$/, '');
   };
   
   return (
@@ -157,7 +167,7 @@ export default function Results({
                     <ul className="list-[circle] list-inside ml-4">
                       {patientData.familyHistory.immediate.map((member, index) => (
                         <li key={`immediate-${index}`}>
-                          {getFamilyMemberLabel(member.relation)}: Gediagnosticeerd op leeftijd {member.diagnosisAge}
+                          {getFamilyMemberLabel(trimRelation(member.relation))}: Gediagnosticeerd op leeftijd {member.diagnosisAge}
                         </li>
                       ))}
                     </ul>
@@ -198,8 +208,8 @@ export default function Results({
                     Moederskant: {patientData.familyHistory.maternal.length} aangetaste familieleden
                     {patientData.familyHistory.maternal.length > 0 && (
                       <ul className="list-[circle] list-inside ml-4">
-                        {patientData.familyHistory.maternal.map((relative, index) => (
-                          <li key={`maternal-${index}`}>{getMaternalRelativeLabel(relative)}</li>
+                        {patientData.familyHistory.maternalFamilyMembers.map((relative, index) => (
+                          <li key={`maternal-${index}`}>{getMaternalRelativeLabel(relative.relation)}</li>
                         ))}
                       </ul>
                     )}
@@ -212,12 +222,38 @@ export default function Results({
                     Vaderskant: {patientData.familyHistory.paternal.length} aangetaste familieleden
                     {patientData.familyHistory.paternal.length > 0 && (
                       <ul className="list-[circle] list-inside ml-4">
-                        {patientData.familyHistory.paternal.map((relative, index) => (
-                          <li key={`paternal-${index}`}>{getPaternalRelativeLabel(relative)}</li>
+                        {patientData.familyHistory.paternalFamilyMembers.map((relative, index) => (
+                          <li key={`paternal-${index}`}>{getPaternalRelativeLabel(relative.relation)}</li>
                         ))}
                       </ul>
                     )}
                   </li>
+                )}
+                  
+                  {/* First degree pancreatic cancer */}
+                {patientData.familyHistory.pancreaticCancer.length > 0 && (
+                  <li>
+                    Er is bij uw familie PDAC gevonden bij:
+                  <ul className="list-[circle] list-inside ml-4">
+                    {patientData.familyHistory.pancreaticCancer.map((relative, index) => (
+                      <li key={`pancreatic-${index}`}>{getFamilyMemberLabel(relative.relation)}</li>
+                    ))}
+                  </ul>
+                  </li>
+                )}
+
+                {/* Prostate cancer in family */}
+                {patientData.familyHistory.prostateCancer.length > 0 && (
+                  <li>
+                    Familieleden met Prostaatkanker:
+                    <ul className="list-[circle] list-inside ml-4">
+                      {patientData.familyHistory.prostateCancer.map((member, index) => (
+                        <li key={`prostate-${index}`}>
+                          {getFamilyMemberLabel(member.relation)}: Gediagnosticeerd op leeftijd {"onder de 60 jaar "}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>  
                 )}
                 
                 {!patientData.personalInfo.hasBreastCancer && 
@@ -225,7 +261,8 @@ export default function Results({
                  patientData.familyHistory.maternal.length === 0 && 
                  patientData.familyHistory.paternal.length === 0 && 
                  patientData.familyHistory.ovarianCancer.length === 0 &&
-                 patientData.familyHistory.maleBreastCancer.length === 0 && (
+                 patientData.familyHistory.maleBreastCancer.length === 0 && 
+                 patientData.familyHistory.pancreaticCancer.length === 0 && (
                   <li>Geen gemelde geschiedenis van borst- of eierstokkanker.</li>
                 )}
               </ul>
@@ -236,7 +273,7 @@ export default function Results({
           <div className="p-4 rounded-lg border border-slate-200">
             <h3 className="text-lg font-medium mb-2">Aanbevelingen:</h3>
             <div className="space-y-2">
-              {recommendations.map((recommendation, index) => (
+              {ageBasedRecommendations.map((recommendation, index) => (
                 <p key={index} className="flex items-start">
                   <CheckCircle className="text-primary mr-2 mt-0.5 h-5 w-5 flex-shrink-0" /> 
                   <span>{recommendation}</span>

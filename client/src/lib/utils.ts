@@ -1,3 +1,4 @@
+import FamilyHistory from "@/components/breast-cancer-assessment/family-history";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -35,142 +36,212 @@ export function getBreastCancerRisk(patientData: any) {
   const totalAffectedRelatives = totalMaternalRelatives + totalPaternalRelatives + totalImmediateRelatives;
   
   // Determine which side has more affected relatives
-  const maternalAffected = totalMaternalRelatives;
-  const paternalAffected = totalPaternalRelatives;
-  
+  let mostAffectedGroup: {relation: string, diagnosisAge: number}[] = [];
+  if (totalMaternalRelatives > totalPaternalRelatives) {
+    mostAffectedGroup = patientData.familyHistory.maternalFamilyMembers;
+  } else {
+    mostAffectedGroup = patientData.familyHistory.paternalFamilyMembers;
+  }
+
+
   // Check for high-risk criteria based on the flowchart
   let isHighRisk = false;
   let highRiskReason = '';
   
   // Criteria 1: 1st degree relative with breast cancer diagnosed < 40 years (man or woman)
-  const hasFirstDegreeUnder40 = [...patientData.familyHistory.immediate, ...patientData.familyHistory.maternalFamilyMembers, ...patientData.familyHistory.paternalFamilyMembers]
-    .some((member: any) => member.diagnosisAge < 40);
+  const hasFirstDegreeUnder40 = patientData.familyHistory.immediate
+  .some((member: any) => member.diagnosisAge < 40);
   
   if (hasFirstDegreeUnder40) {
     isHighRisk = true;
     highRiskReason = '1e graads verwante met borstkanker aangetoond op leeftijd < 40 jaar';
   }
   
-  // Criteria 2: 1st degree relative with bilateral breast cancer first tumor < 50 years
-  const hasFirstDegreeBilateralUnder50 = [...patientData.familyHistory.immediate, ...patientData.familyHistory.maternalFamilyMembers, ...patientData.familyHistory.paternalFamilyMembers]
-    .some((member: any) => patientData.familyHistory.multipleBreastCancer
-      .some((multi: any) => multi.relation === member.relation && multi.firstDiagnosisAge < 50));
+ // Criteria 2: 1st degree or 2nd degree relative with genetich abnormality (BRCA1/2)
+  const hasGeneticAbnormality = [...patientData.familyHistory.immediateGeneticTest, ...patientData.familyHistory.maternalGeneticTest, ...patientData.familyHistory.paternalGeneticTest]
+    .some((member: any) => member.abnormality === 'BRCA1' || member.abnormality === 'BRCA2');
   
-  if (hasFirstDegreeBilateralUnder50) {
+  if (hasGeneticAbnormality) {
     isHighRisk = true;
-    highRiskReason = '1e graads verwante met bilaterale BK met eerste tumor < 50 jaar';
+    highRiskReason = '1e of 2e graads verwante met genetische abnormaliteit (BRCA1/2)';
   }
+
   
-  // Criteria 3: 1st degree relative with multiple primary tumors in 1 breast, with first tumor < 50 years
-  const hasFirstDegreeMultipleTumorsUnder50 = patientData.familyHistory.multipleBreastCancer
-    .some((member: any) => member.firstDiagnosisAge < 50);
-  
-  if (hasFirstDegreeMultipleTumorsUnder50) {
-    isHighRisk = true;
-    highRiskReason = '1e graads verwante met triple negatieve BK < 60 jaar';
-  }
-  
-  // Criteria 4: 2 first-degree relatives or 1 first-degree + 1 second-degree, one diagnosed < 50 years
-  // Count all first-degree relatives
-  const firstDegreeWithBC = patientData.familyHistory.immediate.length;
-  
-  // Count second-degree relatives (assuming maternal and paternal family members are second-degree)
-  const secondDegreeWithBC = patientData.familyHistory.maternalFamilyMembers.length + 
-                           patientData.familyHistory.paternalFamilyMembers.length;
-  
-  // Check if any member diagnosed under 50
-  const anyMemberUnder50 = [...patientData.familyHistory.immediate, 
-                           ...patientData.familyHistory.maternalFamilyMembers, 
-                           ...patientData.familyHistory.paternalFamilyMembers]
-                           .some((member: any) => member.diagnosisAge < 50);
-  
-  if ((firstDegreeWithBC >= 2 || (firstDegreeWithBC >= 1 && secondDegreeWithBC >= 1)) && anyMemberUnder50) {
-    isHighRisk = true;
-    highRiskReason = '2 eerste graads verwanten met BK of 1 eerste graads verwant met BK + 1 tweede graads verwant met BK, waarvan ten minste 1 diagnose < 50 jaar';
-  }
-  
-  // Criteria 5: 3 or more first or second-degree relatives with breast cancer
-  if (firstDegreeWithBC + secondDegreeWithBC >= 3) {
-    isHighRisk = true;
-    highRiskReason = '3 of meer 1e of 2e graads verwanten met BK';
-  }
-  
-  // Criteria 6: 1st degree relative with breast cancer and ovarian cancer
-  const hasFirstDegreeWithBCAndOC = patientData.familyHistory.immediate
-    .some((member: any) => {
-      const relation = member.relation;
-      return patientData.familyHistory.ovarianCancer.some((oc: any) => oc.relation === relation);
+
+// Criteria 3: 1st degree relative with both breast cancer and pancreatic cancer
+// Check if any immediate family member has breast cancer and pancreatic cancer
+patientData.familyHistory.immediate = patientData.familyHistory.immediate.map((member: any) => {
+  // Extract the base relation by removing the prefix and suffix
+  const baseRelation = member.relation.replace(/^immediate_/, '').replace(/_\d+$/, '');
+
+  const hasPancreaticCancer = patientData.familyHistory.pancreaticCancer
+    .some((pcMember: any) => {
+      const pcBaseRelation = pcMember.relation.replace(/^immediate_/, '').replace(/_\d+$/, '');
+      return pcBaseRelation === baseRelation;
     });
+
+  return {
+    ...member,
+    hasPancreaticCancer,
+  };
+});
+const hasFirstDegreeWithBCAndPC = patientData.familyHistory.immediate
+  .some((member: any) => member.hasPancreaticCancer && member.hasBreastCancer);
+
+if (hasFirstDegreeWithBCAndPC) {
+  isHighRisk = true;
+  highRiskReason = '1e graads verwante met BK en alvleesklierkanker';
+}
+
   
-  if (hasFirstDegreeWithBCAndOC) {
+ // Criteria 4: 1st degree relative with male breast cancer
+ const hasFirstDegreeMaleWithBC = patientData.familyHistory.maleBreastCancer.length > 0;
+  
+ if (hasFirstDegreeMaleWithBC) {
+   isHighRisk = true;
+   highRiskReason = '1e graads mannelijk verwante met BK ongeacht de leeftijd en/of beide ouders';
+ }
+  
+  // Criteria 5: 1st degree relative with breast cancer under 50 years and prostate cancer under 60 years (60years is already in checked in the questionnaire)
+  const hasFirstDegreeWithBC = patientData.familyHistory.immediate
+  .some((member: any) => member.hasBreastCancer && member.diagnosisAge < 50);
+
+  const hasProstateCancer = patientData.familyHistory.prostateCancer.length > 0;;
+
+
+  // Exclude the scenario where the father has prostate cancer and the mother has breast cancer under 50
+  const isExcludedFatherProstateMotherBreastCancer =
+  patientData.familyHistory.prostateCancer.some(
+    (member: any) =>
+      member.relation === "father" 
+  ) &&
+  patientData.familyHistory.immediate.some(
+    (member: any) =>
+      member.relation.replace(/^immediate_/, '').replace(/_\d+$/, '') === 'Moeder' &&
+      member.hasBreastCancer &&
+      member.diagnosisAge < 50
+  );
+  if (hasFirstDegreeWithBC && hasProstateCancer && !isExcludedFatherProstateMotherBreastCancer) {
     isHighRisk = true;
-    highRiskReason = '1e graads verwante met BK en OC';
+    highRiskReason = '1e graads verwante met BK onder 50 jaar en prostaatkanker onder 60 jaar (Aan dezelfde kant van de familie)';
   }
-  
-  // Criteria 7: 2 or more second-degree relatives with breast cancer, one diagnosed < 50 years
-  const secondDegreeUnder50 = [...patientData.familyHistory.maternalFamilyMembers, ...patientData.familyHistory.paternalFamilyMembers]
-    .some((member: any) => member.diagnosisAge < 50);
-  
-  if (secondDegreeWithBC >= 2 && secondDegreeUnder50) {
+
+  //criteria 6: 1st degree relative with breast cancer under 50 years and pancreatic cancer under 60 years (60years is already in checked in the questionnaire)
+  const hasBcAndPancreaticCancer = patientData.familyHistory.immediate
+  .some((member: any) => member.hasBreastCancer && member.diagnosisAge < 50);
+
+  const hasPancreaticCancer = patientData.familyHistory.pancreaticCancer.length > 0;
+
+  // Exclude the scenario where the father has pancreatic cancer and the mother has breast cancer under 50
+  const isExcludedFatherPancreaticMotherBreastCancer =
+  patientData.familyHistory.pancreaticCancer.some(
+    (member: any) =>
+      member.relation === "Vader" 
+  ) &&
+  patientData.familyHistory.immediate.some(
+    (member: any) =>
+      member.relation.replace(/^immediate_/, '').replace(/_\d+$/, '') === 'Moeder' &&
+      member.hasBreastCancer &&
+      member.diagnosisAge < 50
+  );
+
+  if (hasBcAndPancreaticCancer && hasPancreaticCancer && !isExcludedFatherPancreaticMotherBreastCancer) {
     isHighRisk = true;
-    highRiskReason = '2 of meer 2e graads verwanten met BK, waarvan ten minste 1 diagnose < 50 jaar';
+    highRiskReason = '1e graads verwante met BK onder 50 jaar en alvleesklierkanker onder 60 jaar (Aan dezelfde kant van de familie)';
   }
-  
-  // Criteria 8: 1st degree relative with male breast cancer
-  const hasFirstDegreeMaleWithBC = patientData.familyHistory.maleBreastCancer.length > 0;
-  
-  if (hasFirstDegreeMaleWithBC) {
+
+
+  // Criteria 7: 2 or more first-degree relatives with breast cancer under 50 years
+  const firstDegreeUnder50Count = patientData.familyHistory.immediate
+  .filter((member: any) => member.hasBreastCancer && member.diagnosisAge < 50).length;
+
+  if (firstDegreeUnder50Count >= 2) {
     isHighRisk = true;
-    highRiskReason = '1e graads verwante met BK ongeacht de leeftijd en/of beide ouders';
+    highRiskReason = '2 of meer 1e graads verwante met BK onder 50 jaar';
   }
-  
-  // Criteria 9: Personal history of breast cancer/OC/PDAC
-  if (patientData.personalInfo.hasBreastCancer) {
+
+  // Criteria 8: 3 or more first-degree and second-degree relatives (second-degree relatives on the same side of the family) with breast cancer, with at least one diagnosed < 50 years
+  const firstDegreeWithBCCount = patientData.familyHistory.immediate
+  .filter((member: any) => member.hasBreastCancer).length;
+
+  // if paternal side is higher, only use paternal family members. If maternal side is higher, only use maternal family members.
+  const secondDegreeWithBCMembers = mostAffectedGroup.filter((member: any) => member.hasBreastCancer);
+  const secondDegreeWithBCCount = mostAffectedGroup.length;
+
+  const hasUnder50Diagnosis = [
+    ...patientData.familyHistory.immediate,
+    ...secondDegreeWithBCMembers,
+  ].some((member: any) => member.hasBreastCancer && member.diagnosisAge < 50);
+
+  if (firstDegreeWithBCCount + secondDegreeWithBCCount >= 3 && hasUnder50Diagnosis) {
     isHighRisk = true;
-    highRiskReason = 'Patiënt heeft zelf borstkanker gehad';
+    highRiskReason = '3 of meer 1e of 2e graads verwante met BK, met minimaal 1 onder 50 jaar';
   }
-  
+
+
+  // YEARLY SCREENING CRITERIA
   // Yearly screening criteria (all these don't meet high risk but should be screened)
   let shouldYearlyScreen = false;
   let yearlyScreenReason = '';
-  
-  // Criteria 1: 1st degree relative with breast cancer diagnosed when older than 50 years
-  const hasFirstDegreeOver50 = [...patientData.familyHistory.immediate, ...patientData.familyHistory.maternalFamilyMembers, ...patientData.familyHistory.paternalFamilyMembers]
-    .some((member: any) => member.diagnosisAge >= 50);
-  
-  if (hasFirstDegreeOver50) {
-    shouldYearlyScreen = true;
-    yearlyScreenReason = '1e graads verwante met BK met leeftijd eerste diagnose > 50 jaar';
-  }
-  
-  // Criteria 2: 2 first or second-degree relatives with breast cancer from the same side of the family with average diagnosis age < 50 years
-  const maternalDiagnosisAges = patientData.familyHistory.maternalFamilyMembers.map((m: any) => m.diagnosisAge);
-  const paternalDiagnosisAges = patientData.familyHistory.paternalFamilyMembers.map((m: any) => m.diagnosisAge);
-  
-  // Calculate average diagnosis age for maternal side
-  const maternalAverageAge = maternalDiagnosisAges.length > 0 
-    ? maternalDiagnosisAges.reduce((sum: number, age: number) => sum + age, 0) / maternalDiagnosisAges.length
+
+  // Criteria 1: 1st degree relative with breast cancer twice and the first diagnosis age < 60 years
+if (patientData.familyHistory.multipleBreastCancer.length > 0) {
+  shouldYearlyScreen = true;
+  yearlyScreenReason = '1e graads verwante met tweemaal borstkankerdiagnoses, waarvan ten minste 1 diagnose <60 jaar.';
+}
+
+// Criteria 2: 1st and 2nd degree relatives with breast cancer, with the average age of diagnosis < 50 years
+// Combine maternal family members and immediate family members for maternal side
+const maternalCombinedAges = [
+  ...(patientData.familyHistory.maternalFamilyMembers.length > 0
+    ? patientData.familyHistory.maternalFamilyMembers.map((m: any) => m.diagnosisAge)
+    : []),
+    ...(patientData.familyHistory.immediate.length > 0
+      ? patientData.familyHistory.immediate.map((m: any) => m.diagnosisAge)
+      : []),
+];
+
+// Combine paternal family members and immediate family members for paternal side
+const paternalCombinedAges = [
+  ...(patientData.familyHistory.paternalFamilyMembers.length > 0
+    ? patientData.familyHistory.paternalFamilyMembers.map((m: any) => m.diagnosisAge)
+    : []),
+    ...(patientData.familyHistory.immediate.length > 0
+      ? patientData.familyHistory.immediate.map((m: any) => m.diagnosisAge)
+      : []),
+];
+
+// Calculate average diagnosis age for maternal side
+const maternalImmediateDiagnosisAgesAverage =
+  maternalCombinedAges.length > 0
+    ? maternalCombinedAges.reduce((sum: number, age: number) => sum + age, 0) /
+      maternalCombinedAges.length
     : 0;
-  
-  // Calculate average diagnosis age for paternal side
-  const paternalAverageAge = paternalDiagnosisAges.length > 0
-    ? paternalDiagnosisAges.reduce((sum: number, age: number) => sum + age, 0) / paternalDiagnosisAges.length
+
+// Calculate average diagnosis age for paternal side
+const paternalImmediateDiagnosisAgesAverage =
+  paternalCombinedAges.length > 0
+    ? paternalCombinedAges.reduce((sum: number, age: number) => sum + age, 0) /
+      paternalCombinedAges.length
     : 0;
-    
-  // Check if there are at least 2 relatives on the same side with average age < 50
-  const maternalCriteriaMet = patientData.familyHistory.maternalFamilyMembers.length >= 2 && maternalAverageAge < 50;
-  const paternalCriteriaMet = patientData.familyHistory.paternalFamilyMembers.length >= 2 && paternalAverageAge < 50;
-  
-  if (maternalCriteriaMet || paternalCriteriaMet) {
-    shouldYearlyScreen = true;
-    yearlyScreenReason = '2 eerste/tweede graads verwanten met BK aan dezelfde kant van de familie met gemiddelde leeftijd diagnose < 50 jaar';
-  }
-  
-  // Criteria 3: 3 or more first or second-degree relatives with breast cancer at the same side of the family
-  if (patientData.familyHistory.maternalFamilyMembers.length >= 3 || patientData.familyHistory.paternalFamilyMembers.length >= 3) {
-    shouldYearlyScreen = true;
-    yearlyScreenReason = '3 of meer 1e of 2e graads verwanten met BK, aan zelfde kant van de familie';
-  }
+
+// Check if either maternal or paternal average diagnosis age is below 50
+if ((maternalImmediateDiagnosisAgesAverage < 50 && maternalCombinedAges.length > 1  || paternalImmediateDiagnosisAgesAverage < 50 && paternalCombinedAges.length > 1) && isHighRisk === false) {
+  shouldYearlyScreen = true;
+  yearlyScreenReason =
+    "1e en 2e graads verwanten met borstkanker, met gemiddelde leeftijd diagnose < 50 jaar";
+}
+
+// 3 or more 1st or 2nd degree relatives with breast cancer, on the same side of the family
+if (
+  mostAffectedGroup.length >= 3 &&
+  mostAffectedGroup.every((member: any) => member.hasBreastCancer) &&
+  isHighRisk === false
+) {
+  shouldYearlyScreen = true;
+  yearlyScreenReason =
+    "3 of meer 1e of 2e graads verwante met borstkanker, aan dezelfde kant van de familie";
+}
   
   // Determine risk level
   let riskLevel = 'Average';
@@ -185,6 +256,7 @@ export function getBreastCancerRisk(patientData: any) {
     riskLevel = 'Moderate';
     riskColor = 'text-amber-500 font-semibold';
     explanation = `Jaarlijkse screening buiten het BVO wordt geadviseerd. Reden: ${yearlyScreenReason}`;
+    
   } else {
     riskLevel = 'Average';
     riskColor = 'text-green-500';
@@ -195,25 +267,40 @@ export function getBreastCancerRisk(patientData: any) {
     riskLevel,
     riskColor,
     explanation,
-    maternalAffected,
-    paternalAffected,
-    totalAffectedRelatives
+    mostAffectedGroup,
+    totalAffectedRelatives,
   };
 }
 
-export function getRecommendations(riskLevel: string) {
+export function getRecommendations(riskLevel: string, age: number) {
   const recommendations = [];
-  
+
   if (riskLevel === 'High') {
     recommendations.push('Verwijs naar klinische genetica voor erfelijkheidsonderzoek');
-    recommendations.push('Er is een sterke voorspeller om het familiaal risico met BK, OC/TC, PDAC of PC te verwijzen, omdat de DNA-afwijking bij haar/hem zal starten');
+    // Voeg aanbevelingen toe op basis van leeftijd
+    if (age >= 35 && age < 40) {
+      recommendations.push('1 maal per 1,5 jaar MRI en contactmoment');
+    } else if (age >= 40 && age < 50) {
+      recommendations.push('Jaarlijks afwisselend MRI en mammografie of 1 maal per 1.5 jaar MRI en contactmoment');
+    } else if (age >= 50 && age < 60) {
+      recommendations.push('Jaarlijks afwisselend MRI en mammografie of 1 maal per 1.5 jaar MRI en contactmoment');
+    } else if (age >= 60 && age < 75) {
+      recommendations.push('1 maal per 2 jaar mammofgrafie binnen het bevolkingsonderzoek');
+    } 
   } else if (riskLevel === 'Moderate') {
     recommendations.push('Screen jaarlijks buiten het BVO met mammogram van 40 tot 50 jaar via de huisarts');
-    recommendations.push('Verwijs niet naar klinische genetica');
+    // Voeg aanbevelingen toe op basis van leeftijd
+    if (age >= 40 && age < 50) {
+      recommendations.push('Jaarlijks mammografie via huisarts');
+    } else if (age >= 50 && age < 60) {
+      recommendations.push('1 x per 2 jaar mammografie binnen het bevolkingsonderzoek');
+    } else if (age >= 60 && age < 75) {
+      recommendations.push('1 x per 2 jaar mammografie binnen het bevolkingsonderzoek');
+    }
   } else {
     recommendations.push('Screen via het BVO (bevolkingsonderzoek)');
     recommendations.push('Verwijs niet naar klinische genetica');
   }
-  
+
   return recommendations;
 }

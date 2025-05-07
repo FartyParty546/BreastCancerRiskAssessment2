@@ -1,6 +1,10 @@
 export interface FamilyMember {
   relation: string;
   diagnosisAge: number;
+  hasBreastCancer?: boolean;
+  hasMaleBreastCancer?: boolean;
+  hasPancreaticCancer?: boolean;
+  hasProstateCancer?: boolean;
 }
 
 export interface PersonalInfo {
@@ -34,7 +38,12 @@ export interface ProstateCancerMember {
   diagnosisAge: number;
 }
 
+export interface PancreaticCancerMember {
+  relation: string;
+}
+
 export interface FamilyHistory {
+  personalInfo: any;
   maternal: string[];
   paternal: string[];
   immediate: FamilyMember[];
@@ -47,6 +56,7 @@ export interface FamilyHistory {
   maleBreastCancer: BreastCancerMaleMember[];
   multipleBreastCancer: MultipleBreastCancerMember[];
   prostateCancer: ProstateCancerMember[];
+  pancreaticCancer: PancreaticCancerMember[];
   hasBreastCancerInFamily: boolean;
 }
 
@@ -126,6 +136,16 @@ export const FEMALE_MEMBERS_MULTIPLE_BREAST_CANCER = [
 export const MALE_MEMBERS_PROSTATE_CANCER = [
   { value: "father", label: "Vader" },
   { value: "brother", label: "Broer" },
+  { value: "son", label: "Zoon" },
+  { value: "none", label: "Geen van bovenstaande of onbekend" }
+];
+
+export const PANCREATIC_CANCER_MEMBERS_FIRST_DEGREE_RELATIVE = [
+  { value: "mother", label: "Moeder" },
+  { value: "father", label: "Vader" },
+  { value: "sister", label: "Zus" },
+  { value: "brother", label: "Broer" },
+  { value: "daughter", label: "Dochter" },
   { value: "son", label: "Zoon" },
   { value: "none", label: "Geen van bovenstaande of onbekend" }
 ];

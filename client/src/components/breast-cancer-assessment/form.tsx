@@ -27,6 +27,7 @@ const initialFormData: AssessmentFormData = {
     maleBreastCancer: [],
     multipleBreastCancer: [],
     prostateCancer: [],
+    pancreaticCancer: [],
     hasBreastCancerInFamily: false
   }
 };
@@ -160,7 +161,7 @@ export default function BreastCancerAssessmentForm() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <p className="text-sm">© 2023 Borstkanker Risicobeoordeling Tool</p>
+              <p className="text-sm">© 2025 Borstkanker Risicobeoordeling Tool</p>
               <p className="text-xs text-slate-400 mt-1">Deze tool is alleen voor informatieve doeleinden en vormt geen medisch advies.</p>
             </div>
             <div className="flex space-x-4">

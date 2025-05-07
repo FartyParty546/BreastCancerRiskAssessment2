@@ -74,19 +74,6 @@ export default function PersonalInfo({ onSubmit, initialData }: PersonalInfoProp
       newErrors.diagnosisAge = "Diagnoseleeftijd moet lager of gelijk zijn aan uw huidige leeftijd";
     }
     
-    // Validate family history selection
-    if (!familyHistory) {
-      newErrors.familyHistory = "Geef aan of familieleden borstkanker hebben gehad";
-    }
-    
-    // Validate genetic testing questions
-    if (!hadGeneticTest) {
-      newErrors.hadGeneticTest = "Geef aan of u een erfelijkheidsonderzoek heeft gehad";
-    }
-    
-    if (!familyHadGeneticTest) {
-      newErrors.familyHadGeneticTest = "Geef aan of er bij uw familie erfelijkheidsonderzoek is uitgevoerd";
-    }
     
     // If there are any errors, update state and return
     if (Object.keys(newErrors).length > 0) {
